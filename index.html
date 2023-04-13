@@ -169,7 +169,7 @@
           view: view,
           layerInfos:[{
             layer: layer,
-            title: "2011-2015年中国省会城市平均人口增长率"
+            title: "2011-2015年中国省会城市平均人口增长"
            }],
            container:'legendContainer'
         });
@@ -228,8 +228,6 @@
           query.outFields = [ "census2011", "census2012", "census2013","census2014","census2015" ];
           layer.queryFeatures()
             .then(function(response){
-              // returns a feature set with features containing the following attributes
-              // STATE_NAME, COUNTY_NAME, POPULATION, POP_DENSITY
               for(let i=0;i<response.features.length;i++){
                 if(response.features[i].attributes.captial===layerSelectVal){
                   var obj=response.features[i].attributes;
@@ -239,7 +237,7 @@
                   view.goTo({
                     center: point,
                     zoom: 8,
-                    duration: 2000  // 可选参数，表示移动地图视图的时间，单位为毫秒，默认值为0。
+                    duration: 2000  
                   });
                 }
               }
@@ -303,7 +301,7 @@
   <body>
     <div id="header">
       <div><img src="PeopleManage.png" width="auto" height="43px" /></div>
-      <div id="title">2011-2015年中国省会城市平均人口增长率图</div>
+      <div id="title">2011-2015年中国省会城市平均人口增长分布图</div>
       
       <div id="analysisDistance" style="margin-left: auto; display: flex; justify-content: space-between; align-items: center">
         <div class="dropdown">
@@ -383,7 +381,7 @@
                 <option value="澳门">澳门特别行政区</option>
                 <option value="拉萨市">拉萨市</option>
               </select> 
-              <button class="five" onclick="displayData()">五年人口增长率对比</button>
+              <button class="five" onclick="displayData()">五年人口增长对比</button>
           </div>
         </div>
         <div id="queryWrapper" style="margin-right: 20px; display: flex">
@@ -443,11 +441,11 @@
       <div id="viewDiv">
         <div class="center" id="popup">
           <span class="close">&times;</span>
-          省会城市人口增长对比值为（2011年）:<p id="number1"></p>
-          省会城市人口增长对比值为（2012年）:<p id="number2"></p>
-          省会城市人口增长对比值为（2013年）:<p id="number3"></p>
-          省会城市人口增长对比值为（2014年）:<p id="number4"></p>
-          省会城市人口增长对比值为（2015年）:<p id="number5"></p>
+          人口增长比率为（2011年）:<p id="number1"></p>
+          人口增长比率为（2012年）:<p id="number2"></p>
+          人口增长比率为（2013年）:<p id="number3"></p>
+          人口增长比率为（2014年）:<p id="number4"></p>
+          人口增长比率为（2015年）:<p id="number5"></p>
         </div>
       </div>
     </div>
