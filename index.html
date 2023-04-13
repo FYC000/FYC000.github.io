@@ -1,0 +1,456 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>
+      Intro to MapView - Create a 2D map | Sample | ArcGIS Maps SDK for
+      JavaScript 4.26
+    </title>
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 96%;
+        width: 100%;
+      }
+      #header{
+        height: 65px;
+        background-color: white;
+        display: flex;
+        align-items: center;
+        padding: 0 10px; 
+        justify-content:space-between;
+      }
+      #container{
+        height: calc(100vh - 65px);
+        display: flex;
+      }
+      #title{
+        font-family: 宋体;
+        font-size: 20px;
+        margin-right: auto;
+      }
+      #LayerListDiv{
+        flex: 1;
+        position: relative;
+        background-color: white;
+        overflow: auto;
+      }
+      #layerListContainer {
+        height: calc(100% - 40px);
+        width: 100%;
+        background-color: #f2f2f2;
+        overflow: auto;
+      }
+      #layerListDiv {
+        position: relative;
+        height: 45%; 
+        background-color: white;
+      }
+      #legendContainer {
+        height: calc(100% - 40px);
+        width: 100%;
+        background-color: #f2f2f2;
+      }
+      .dropbtn {
+          background-color:	#6495ED;
+          color: white;
+          padding: 16px;
+          font-size: 16px;
+          border: none;
+          cursor: pointer;
+      }
+      .dropdown {
+          position: relative;
+          display: inline-block;
+          right: 10px;
+          width: 120px;
+      }
+      .dropdown-content {
+          display: none;
+          position: absolute;
+          background-color: #f9f9f9;
+          min-width: 160px;
+          box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+          z-index: 1;
+      }
+      .dropdown:hover .dropdown-content {
+          display: block;
+      }
+      .dropdown:hover .dropbtn {
+          background-color: 	#FF0000;
+      }
+      .center {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        display: none;
+        background-color: 	#FFE4B5;
+      }
+      .five {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 10px;
+		}
+    .close {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        cursor: pointer;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.26/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.26/"></script>
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/widgets/BasemapGallery",
+        "esri/layers/FeatureLayer",
+        "esri/widgets/Legend",
+        "esri/widgets/ScaleBar",
+        "esri/widgets/Search",
+        "esri/widgets/LayerList",
+        "esri/widgets/Expand",
+        "esri/widgets/Home",
+        "esri/rest/support/Query",
+        "esri/geometry/Point"
+        ], (
+          Map, 
+          MapView,
+          BasemapGallery,
+          FeatureLayer,
+          Legend,
+          ScaleBar,
+          Search,
+          LayerList,
+          Expand,
+          Home,
+          Query,
+          Point
+          ) => {
+        var layer = new FeatureLayer({
+          url: "https://www.geosceneonline.cn/server/rest/services/Hosted/CN_34Capital_Population_111/FeatureServer"
+        });
+        var map = new Map({
+          basemap: "streets-navigation-vector",
+          layers: [layer]
+        });
+        var view = new MapView({
+          container: 'viewDiv',
+          map: map,
+          zoom: 3,
+          center: [119, 34] 
+        });
+
+        var basemapGallery = new BasemapGallery({
+          view: view,
+          container: 'basemapDiv'
+        });
+        var legend = new Legend({
+          view: view,
+          layerInfos:[{
+            layer: layer,
+            title: "2011-2015年中国省会城市平均人口增长率"
+           }],
+           container:'legendContainer'
+        });
+        var scaleBar = new ScaleBar({
+          view: view,
+          style: "ruler",
+          unit: "metric"          
+        });
+        var searchWidget = new Search({
+          view: view,
+          container: 'searchWrapper',
+          
+        });
+        var layerList = new LayerList({
+          view: view,
+          container:'layerListContainer'
+        });
+
+        var layerListExpand = new Expand({
+          view: view,
+          content: basemapGallery
+        });
+
+        var homeWidget = new Home({
+          view: view
+        });
+        var point = new Point({
+          longitude: 119,
+          latitude: 34
+        });
+
+        view.ui.add(legend, {
+          position: "none",
+        });
+        view.ui.add(scaleBar, {
+          position: "bottom-left",
+
+        });
+        view.ui.add(searchWidget, {
+          position: "none",
+        });
+        view.ui.add(layerList, {
+          position: "none",
+        });
+        view.ui.add(basemapGallery, {
+          position: "central",
+        });
+        view.ui.add(homeWidget, {
+          position: "top-left",
+        });
+        onSelectorChange=function(){
+          const layerSelect = document.getElementById("citySelector");
+          const layerSelectVal=layerSelect.value;
+          let query = layer.createQuery();
+          query.where = "Captial = '" + layerSelectVal + "'";
+          query.outFields = [ "census2011", "census2012", "census2013","census2014","census2015" ];
+          layer.queryFeatures()
+            .then(function(response){
+              // returns a feature set with features containing the following attributes
+              // STATE_NAME, COUNTY_NAME, POPULATION, POP_DENSITY
+              for(let i=0;i<response.features.length;i++){
+                if(response.features[i].attributes.captial===layerSelectVal){
+                  var obj=response.features[i].attributes;
+                  console.log(obj);
+                  point.latitude=obj.lat;
+                  point.longitude=obj.lon;
+                  view.goTo({
+                    center: point,
+                    zoom: 8,
+                    duration: 2000  // 可选参数，表示移动地图视图的时间，单位为毫秒，默认值为0。
+                  });
+                }
+              }
+              console.log(response.features);              
+          });
+        }
+        reset=function(){
+          point.lat=119;
+          point.lon=34;
+          view.goTo({
+                    center: point,
+                    zoom: 3,
+                    duration: 2000  
+          });
+
+        }
+        displayData=async function(){
+          const layerSelectVal1 = document.getElementById("citySelectorFirst").value;
+          const layerSelectVal2 = document.getElementById("citySelectorSecond").value;
+          var first = await getData(layerSelectVal1);
+          var second= await getData(layerSelectVal2);
+          document.getElementById("number1").innerHTML = parseFloat(first[0]/second[0]).toFixed(2)
+          document.getElementById("number2").innerHTML = parseFloat(first[1]/second[1]).toFixed(2);
+          document.getElementById("number3").innerHTML = parseFloat(first[2]/second[2]).toFixed(2);
+          document.getElementById("number4").innerHTML = parseFloat(first[3]/second[3]).toFixed(2);
+          document.getElementById("number5").innerHTML = parseFloat(first[4]/second[4]).toFixed(2); 
+          document.getElementById("popup").style.display = "block"; 
+        }
+        const close = document.querySelector(".close");
+ 
+        close.addEventListener("click", function() {
+          document.getElementById("popup").style.display = "none";
+        });
+         var getData=function(layerSelectVal){
+          return new Promise(function(resolve){
+            let query = layer.createQuery();
+            query.where = "Captial = '" + layerSelectVal + "'";
+            var array = new Array(5);
+            layer.queryFeatures()
+              .then(function(response){
+                for(let i=0;i<response.features.length;i++){
+                  if(response.features[i].attributes.captial===layerSelectVal){
+                    var obj=response.features[i].attributes;
+                    var val=new Array(5);
+                    val[0]=obj.census2011;
+                    val[1]=obj.census2012;
+                    val[2]=obj.census2013;
+                    val[3]=obj.census2014;
+                    val[4]=obj.census2015; 
+                    array=val;
+                  }
+                } 
+                resolve(array);
+              })
+          }); 
+         } 
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="header">
+      <div><img src="PeopleManage.png" width="auto" height="43px" /></div>
+      <div id="title">2011-2015年中国省会城市平均人口增长率图</div>
+      
+      <div id="analysisDistance" style="margin-left: auto; display: flex; justify-content: space-between; align-items: center">
+        <div class="dropdown">
+          <button class="dropbtn">测量分析</button>
+          <div class="dropdown-content">
+              <select id="citySelectorFirst" style="height:35px;">
+                <option value="">请选择需要比对的省会城市(或港澳台地区)</option>
+                <option value="重庆市">重庆市</option>
+                <option value="台北">台北市</option>
+                <option value="上海市">上海市</option>
+                <option value="北京市">北京市</option>
+                <option value="成都市">成都市</option>
+                <option value="石家庄市">石家庄市</option>
+                <option value="天津市">天津市</option>
+                <option value="哈尔滨市">哈尔滨市</option>
+                <option value="广州市">广州市</option>
+                <option value="武汉市">武汉市</option>
+                <option value="西安市">西安市</option>
+                <option value="郑州市">郑州市</option>
+                <option value="长春市">长春市</option>
+                <option value="香港">香港特别行政区</option>
+                <option value="沈阳市">沈阳市</option>
+                <option value="南宁市">南宁市</option>
+                <option value="合肥市">合肥市</option>
+                <option value="杭州市">杭州市</option>
+                <option value="福州市">福州市</option>
+                <option value="长沙市">长沙市</option>
+                <option value="南京市">南京市</option>
+                <option value="济南市">济南市</option>
+                <option value="昆明市">昆明市</option>
+                <option value="南昌市">南昌市</option>
+                <option value="贵阳市">贵阳市</option>
+                <option value="太原市">太原市</option>
+                <option value="兰州市">兰州市</option>
+                <option value="乌鲁木齐市">乌鲁木齐市</option>
+                <option value="呼和浩特市">呼和浩特市</option>
+                <option value="西宁市">西宁市</option>
+                <option value="银川市">银川市</option>
+                <option value="海口市">海口市</option>
+                <option value="澳门">澳门特别行政区</option>
+                <option value="拉萨市">拉萨市</option>
+              </select>
+              <select id="citySelectorSecond" style="height:35px;">
+                <option value="">请选择需要比对的省会城市(或港澳台地区)</option>
+                <option value="重庆市">重庆市</option>
+                <option value="台北">台北市</option>
+                <option value="上海市">上海市</option>
+                <option value="北京市">北京市</option>
+                <option value="成都市">成都市</option>
+                <option value="石家庄市">石家庄市</option>
+                <option value="天津市">天津市</option>
+                <option value="哈尔滨市">哈尔滨市</option>
+                <option value="广州市">广州市</option>
+                <option value="武汉市">武汉市</option>
+                <option value="西安市">西安市</option>
+                <option value="郑州市">郑州市</option>
+                <option value="长春市">长春市</option>
+                <option value="香港">香港特别行政区</option>
+                <option value="沈阳市">沈阳市</option>
+                <option value="南宁市">南宁市</option>
+                <option value="合肥市">合肥市</option>
+                <option value="杭州市">杭州市</option>
+                <option value="福州市">福州市</option>
+                <option value="长沙市">长沙市</option>
+                <option value="南京市">南京市</option>
+                <option value="济南市">济南市</option>
+                <option value="昆明市">昆明市</option>
+                <option value="南昌市">南昌市</option>
+                <option value="贵阳市">贵阳市</option>
+                <option value="太原市">太原市</option>
+                <option value="兰州市">兰州市</option>
+                <option value="乌鲁木齐市">乌鲁木齐市</option>
+                <option value="呼和浩特市">呼和浩特市</option>
+                <option value="西宁市">西宁市</option>
+                <option value="银川市">银川市</option>
+                <option value="海口市">海口市</option>
+                <option value="澳门">澳门特别行政区</option>
+                <option value="拉萨市">拉萨市</option>
+              </select> 
+              <button class="five" onclick="displayData()">五年人口增长率对比</button>
+          </div>
+        </div>
+        <div id="queryWrapper" style="margin-right: 20px; display: flex">
+          <select id="citySelector" style="height:35px;" onchange="onSelectorChange()">
+            <option value="">请选择省份的省会城市(或港澳台地区)</option>
+            <option value="重庆市">重庆市</option>
+            <option value="台北">台北市</option>
+            <option value="上海市">上海市</option>
+            <option value="北京市">北京市</option>
+            <option value="成都市">成都市</option>
+            <option value="石家庄市">石家庄市</option>
+            <option value="天津市">天津市</option>
+            <option value="哈尔滨市">哈尔滨市</option>
+            <option value="广州市">广州市</option>
+            <option value="武汉市">武汉市</option>
+            <option value="西安市">西安市</option>
+            <option value="郑州市">郑州市</option>
+            <option value="长春市">长春市</option>
+            <option value="香港">香港特别行政区</option>
+            <option value="沈阳市">沈阳市</option>
+            <option value="南宁市">南宁市</option>
+            <option value="合肥市">合肥市</option>
+            <option value="杭州市">杭州市</option>
+            <option value="福州市">福州市</option>
+            <option value="长沙市">长沙市</option>
+            <option value="南京市">南京市</option>
+            <option value="济南市">济南市</option>
+            <option value="昆明市">昆明市</option>
+            <option value="南昌市">南昌市</option>
+            <option value="贵阳市">贵阳市</option>
+            <option value="太原市">太原市</option>
+            <option value="兰州市">兰州市</option>
+            <option value="乌鲁木齐市">乌鲁木齐市</option>
+            <option value="呼和浩特市">呼和浩特市</option>
+            <option value="西宁市">西宁市</option>
+            <option value="银川市">银川市</option>
+            <option value="海口市">海口市</option>
+            <option value="澳门">澳门特别行政区</option>
+            <option value="拉萨市">拉萨市</option>
+          </select>
+          <button id="resetQuery" class="esri-icon-refresh" style="margin-right: auto" onclick="reset()"></button>
+        </div>
+        <div id="searchWrapper"></div>
+      </div>
+    </div>
+    <div id="container">
+      <div id="sideBar">
+        <div id="LayerListDiv">
+          <div style="line-height: 40px; padding: 0 10px;background-color: skyblue" >图层列表</div>
+          <div id="layerListContainer"></div>
+        </div>
+        <div id="LegendDiv">
+          <div style="line-height: 40px; padding: 0 10px;background-color: skyblue;">图例</div>
+          <div id="legendContainer"></div>
+        </div>
+      </div>
+      <div id="viewDiv">
+        <div class="center" id="popup">
+          <span class="close">&times;</span>
+          省会城市人口增长对比值为（2011年）:<p id="number1"></p>
+          省会城市人口增长对比值为（2012年）:<p id="number2"></p>
+          省会城市人口增长对比值为（2013年）:<p id="number3"></p>
+          省会城市人口增长对比值为（2014年）:<p id="number4"></p>
+          省会城市人口增长对比值为（2015年）:<p id="number5"></p>
+        </div>
+      </div>
+    </div>
+    <div id="basemapDiv"></div>
+  </body>
+</html>
